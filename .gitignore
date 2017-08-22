@@ -1,0 +1,6 @@
+*.class
+dgs-graphstream/nbproject/private/
+dgs-graphstream/dist/
+dgs-graphstream/build/
+env/
+output/
