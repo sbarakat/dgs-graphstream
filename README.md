@@ -15,8 +15,8 @@ source env/bin/activate
 ```
 
 The output directory should now contain the following files:
-* `\*.dgs` - the files DGS files for each partition built by combining the METIS network file and the assignments.
-* `frames_partition/` - individual frames for each step in the DGS file. Prefixed with the partition number, eg. `p1_\*.png`
+* `*.dgs` - the files DGS files for each partition built by combining the METIS network file and the assignments.
+* `frames_partition/` - individual frames for each step in the DGS file. Prefixed with the partition number, eg. `p1_*.png`
 * `frames_joined/` - the frames from the folder above are joined to produce a single video frame. The video frame is stepped by node placement from the assignments file.
 
 The video frames can be animated into an MP4 for playback using `ffmpeg`:

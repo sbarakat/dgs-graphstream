@@ -1,6 +1,8 @@
 package dgsgraphstreamanimate;
 
 import java.io.IOException;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.stream.file.FileSourceDGS;
 import org.graphstream.stream.file.FileSinkImages;
 import org.graphstream.stream.file.FileSinkImages.Quality;
@@ -8,14 +10,19 @@ import org.graphstream.stream.file.FileSinkImages.Resolutions;
 import org.graphstream.stream.file.FileSinkImages.OutputType;
 import org.graphstream.stream.file.FileSinkImages.OutputPolicy;
 import org.graphstream.stream.file.FileSinkImages.LayoutPolicy;
+import org.graphstream.stream.SinkAdapter;
+import org.graphstream.ui.graphicGraph.GraphicGraph;
 import org.graphstream.ui.layout.springbox.implementations.LinLog;
+import static scala.xml.TopScope.prefix;
 
 /**
  *
  * @author Sami Barakat
  */
-public class DgsGraphStreamAnimate {
+public class DgsGraphStreamAnimate extends SinkAdapter {
 
+    private DefaultGraph g;
+    
     /**
      * @param args the command line arguments
      */
@@ -25,16 +32,19 @@ public class DgsGraphStreamAnimate {
             System.exit(1);
         }
         try{
-            AnimateDgs(args[0], args[1]);
+            DgsGraphStreamAnimate a = new DgsGraphStreamAnimate();
+            a.AnimateDgs(args[0], args[1]);
         } catch(IOException e) {
             e.printStackTrace();
         }
     }
     
-    private static void AnimateDgs(String inputDGS, String outputDirectory)
+    private void AnimateDgs(String inputDGS, String outputDirectory)
             throws java.io.IOException {
         
         FileSourceDGS dgs = new FileSourceDGS();
+        
+        this.g = new DefaultGraph("graph");
         
         /*
         LinLog layout = new LinLog(false);
@@ -60,7 +70,11 @@ public class DgsGraphStreamAnimate {
         //dgs.addSink(layout);
         //layout.addSink(fsi);
 
-        dgs.addSink(fsi);
+        dgs.addSink(this.g);
+        this.g.addSink(fsi);
+        
+        this.g.addAttributeSink(this);
+        
         
         System.out.println(inputDGS);
         fsi.begin(outputDirectory);
@@ -68,12 +82,25 @@ public class DgsGraphStreamAnimate {
             dgs.begin(inputDGS);
             while (dgs.nextEvents()) {
                 //layout.compute();
+                //fsi.nodeAttributeAdded(inputDGS, 0, inputDGS, inputDGS, fsi);
+                
             }
             dgs.end();
             fsi.end();
         } catch (IOException e1) {
             e1.printStackTrace();
             System.exit(1);
+        }
+    }
+    
+    @Override
+    public void nodeAttributeChanged(String sourceId, long timeId,
+                    String nodeId, String attribute, Object oldValue, Object newValue) {
+
+        if (attribute.equals("c")) {
+            Node n = this.g.getNode(nodeId);
+            n.addAttribute("ui.color", newValue);
+            n.addAttribute("ui.style", "fill-color: " + newValue + ";");
         }
     }
 }
