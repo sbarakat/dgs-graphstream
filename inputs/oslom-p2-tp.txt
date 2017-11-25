@@ -1,0 +1,78 @@
+#module 0 size: 10 bs: 0.0158201
+38 256 473 508 645 678 780 882 887 953 
+#module 1 size: 8 bs: 0.0138746
+55 143 228 294 478 553 603 934 
+#module 2 size: 9 bs: 0.0156838
+86 415 468 494 610 727 909 944 963 
+#module 3 size: 1 bs: 1
+133 
+#module 4 size: 1 bs: 1
+435 
+#module 5 size: 1 bs: 1
+757 
+#module 6 size: 1 bs: 1
+392 
+#module 7 size: 1 bs: 1
+754 
+#module 8 size: 1 bs: 1
+277 
+#module 9 size: 1 bs: 1
+422 
+#module 10 size: 1 bs: 1
+912 
+#module 11 size: 1 bs: 1
+613 
+#module 12 size: 1 bs: 1
+913 
+#module 13 size: 1 bs: 1
+344 
+#module 14 size: 1 bs: 1
+916 
+#module 15 size: 1 bs: 1
+991 
+#module 16 size: 1 bs: 1
+18 
+#module 17 size: 1 bs: 1
+688 
+#module 18 size: 1 bs: 1
+698 
+#module 19 size: 1 bs: 1
+201 
+#module 20 size: 1 bs: 1
+737 
+#module 21 size: 1 bs: 1
+408 
+#module 22 size: 1 bs: 1
+563 
+#module 23 size: 1 bs: 1
+582 
+#module 24 size: 1 bs: 1
+417 
+#module 25 size: 1 bs: 1
+945 
+#module 26 size: 1 bs: 1
+810 
+#module 27 size: 1 bs: 1
+364 
+#module 28 size: 1 bs: 1
+431 
+#module 29 size: 1 bs: 1
+448 
+#module 30 size: 1 bs: 1
+614 
+#module 31 size: 1 bs: 1
+176 
+#module 32 size: 1 bs: 1
+594 
+#module 33 size: 1 bs: 1
+911 
+#module 34 size: 1 bs: 1
+718 
+#module 35 size: 1 bs: 1
+571 
+#module 36 size: 1 bs: 1
+510 
+#module 37 size: 1 bs: 1
+346 
+#module 38 size: 1 bs: 1
+112 

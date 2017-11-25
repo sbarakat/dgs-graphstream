@@ -1,0 +1,42 @@
+#module 0 size: 8 bs: 0.0186839
+25 117 131 341 428 695 816 859 
+#module 1 size: 5 bs: 0.0165882
+5 170 682 692 942 
+#module 2 size: 9 bs: 0.0123208
+33 135 324 345 476 743 750 789 998 
+#module 3 size: 5 bs: 0.0162198
+93 148 455 611 967 
+#module 4 size: 23 bs: 0.685254
+17 75 180 243 316 353 371 405 456 491 509 535 626 675 699 716 725 758 765 795 943 946 965 
+#module 5 size: 1 bs: 1
+513 
+#module 6 size: 1 bs: 1
+569 
+#module 7 size: 1 bs: 1
+13 
+#module 8 size: 1 bs: 1
+584 
+#module 9 size: 1 bs: 1
+328 
+#module 10 size: 1 bs: 1
+777 
+#module 11 size: 1 bs: 1
+674 
+#module 12 size: 1 bs: 1
+671 
+#module 13 size: 1 bs: 1
+29 
+#module 14 size: 1 bs: 1
+895 
+#module 15 size: 1 bs: 1
+42 
+#module 16 size: 1 bs: 1
+438 
+#module 17 size: 1 bs: 1
+555 
+#module 18 size: 1 bs: 1
+355 
+#module 19 size: 1 bs: 1
+480 
+#module 20 size: 1 bs: 1
+984 

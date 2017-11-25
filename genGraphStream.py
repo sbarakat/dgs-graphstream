@@ -5,6 +5,8 @@ import gzip
 import glob
 import shutil
 import tempfile
+from colour import Color
+import colorsys
 import argparse
 import itertools
 import subprocess
@@ -93,9 +95,47 @@ def read_metis(DATA_FILENAME):
 def read_assignments(assignments):
     with open(assignments, 'r') as f:
         # remove \n
-        return [int(l[:-1]) for l in f.readlines()]
+        return [int(l.strip()) for l in f.readlines()]
 
-def write_dgs(output, partition, graph):
+def get_N_HexCol(N=5):
+    #HSV_tuples = [(x * 1.0 / N, 0.5, 0.5) for x in range(N)]
+    #hex_out = []
+    #for rgb in HSV_tuples:
+    #    rgb = map(lambda x: int(x * 255), colorsys.hsv_to_rgb(*rgb))
+    #    hex_out.append('#%02x%02x%02x' % tuple(rgb))
+    #return hex_out
+
+    hex_out = []
+    red = Color("red")
+    blue = Color("violet")
+    for c in red.range_to(blue, N):
+        hex_out.append(c.hex)
+    return hex_out
+
+def gen_colour_map(partitions_num):
+
+    groups = []
+    colour_map = {}
+    for p in range(0, partitions_num):
+        file_oslom = os.path.join('inputs', 'oslom-p{}-tp.txt'.format(p))
+        with open(file_oslom, 'r') as f:
+            for line in f.readlines():
+                if line[0] == '#':
+                    continue
+                groups += [line.strip()]
+
+    colours = get_N_HexCol(len(groups))
+    for i,cluster in enumerate(groups):
+        nodes = cluster.split(' ')
+        for n in nodes:
+            node = int(n)
+            if node in colour_map:
+                print('WARNING: Node {} already had a colour.'.format(node))
+            colour_map[node] = colours[i]
+
+    return colour_map
+
+def write_dgs(output, partition, graph, colour_map):
 
     filename = os.path.join(output, 'partition_{}.dgs'.format(partition))
 
@@ -108,7 +148,11 @@ def write_dgs(output, partition, graph):
         nodes_added = []
         edges_added = []
         for n in graph.nodes_iter(data=True):
-            outf.write("an {}\n".format(n[0]))
+            colour = 'black'
+            if n[0] in colour_map:
+                colour = colour_map[n[0]]
+
+            outf.write("an {} c='{}'\n".format(n[0], colour))
             nodes_added += [n[0]]
 
             for e in graph.edges_iter(data=True):
@@ -121,8 +165,7 @@ def write_dgs(output, partition, graph):
             st += 1
 
 
-def gen_dgs_files(network, assignments_f, output):
-    partitions_num = 6
+def gen_dgs_files(network, assignments_f, output, partitions_num, colour_map):
     G = read_metis(network)
     assignments = read_assignments(assignments_f)
 
@@ -130,10 +173,9 @@ def gen_dgs_files(network, assignments_f, output):
         nodes = [i for i,x in enumerate(assignments) if x == p]
         Gsub = G.subgraph(nodes)
 
-        write_dgs(output, p, Gsub)
+        write_dgs(output, p, Gsub, colour_map)
 
-def gen_frames(output):
-    partitions_num = 6
+def gen_frames(output, partitions_num):
 
     for p in range(0, partitions_num):
         dgs = os.path.join(output, 'partition_{}.dgs'.format(p))
@@ -143,8 +185,7 @@ def gen_frames(output):
             args, cwd='.',
             stderr=subprocess.STDOUT)
 
-def join_images(output, assignments_f):
-    partitions_num = 6
+def join_images(output, assignments_f, partitions_num):
     frames = {}
     frames_max = 0
     for p in range(0, partitions_num):
@@ -222,19 +263,37 @@ if __name__ == '__main__':
                         help='Partition assignsments list')
     parser.add_argument('output',
                         help='Output directory')
+    parser.add_argument('--num-partitions', '-n', type=int, default=4, metavar='N',
+                        help='Number of partitions')
+
+    parser.add_argument('--dgs', action='store_true', default=False,
+                        help='Generate GraphStream DGS file')
+    parser.add_argument('--frames', action='store_true', default=False,
+                        help='Convert GraphStream DGS file to frames')
+    parser.add_argument('--join', action='store_true', default=False,
+                        help='Tile frames in a montage')
 
     args = parser.parse_args()
 
-    print("Generating GraphStream DGS files...")
-    gen_dgs_files(args.network, args.assignments, args.output)
-    print("Done")
+    all_args = False
+    if not args.dgs and not args.frames and not args.join:
+        all_args = True
 
-    print("Using GraphStream to generate frames...")
-    gen_frames(args.output)
-    print("Done.")
+    if args.dgs or all_args:
+        print("Generating colour map...")
+        colour_map = gen_colour_map(args.num_partitions)
+        print("Generating GraphStream DGS files...")
+        gen_dgs_files(args.network, args.assignments, args.output, args.num_partitions, colour_map)
+        print("Done")
 
-    print("Join frame tiles to video frames...")
-    join_images(args.output, args.assignments)
-    print("Done.")
+    if args.frames or all_args:
+        print("Using GraphStream to generate frames...")
+        gen_frames(args.output, args.num_partitions)
+        print("Done.")
+
+    if args.join or all_args:
+        print("Join frame tiles to video frames...")
+        join_images(args.output, args.assignments, args.num_partitions)
+        print("Done.")
 
 

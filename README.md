@@ -11,7 +11,7 @@ pip3 install -r requirements.txt
 Run the following commands:
 ```
 source env/bin/activate
-./genGraphStream.py inputs/network_1.txt inputs/assignments.txt output/
+./genGraphStream.py inputs/network_1.txt inputs/assignments.txt output/ --dgs --frames --join --num-partitions 4
 ```
 
 The output directory should now contain the following files:
