@@ -1,0 +1,11 @@
+graph {
+    fill-color: rgb(255,255,255);
+}
+edge {
+    size: 2px;
+    /*shape: cubic-curve;*/
+    /*shape: blob;*/
+}
+node {
+    size: 40px;
+}
