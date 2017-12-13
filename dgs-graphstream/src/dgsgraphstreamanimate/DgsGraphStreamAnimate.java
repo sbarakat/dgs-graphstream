@@ -1,7 +1,12 @@
 package dgsgraphstreamanimate;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.stream.ProxyPipe;
@@ -14,9 +19,6 @@ import org.graphstream.stream.file.FileSinkImages.OutputPolicy;
 import org.graphstream.stream.file.FileSinkImages.LayoutPolicy;
 import org.graphstream.stream.file.FileSinkImages.RendererType;
 import org.graphstream.stream.SinkAdapter;
-import org.graphstream.ui.graphicGraph.GraphicGraph;
-import org.graphstream.ui.layout.Layout;
-import org.graphstream.ui.layout.Layouts;
 import org.graphstream.ui.layout.springbox.implementations.LinLog;
 import org.graphstream.ui.view.Viewer;
 
@@ -28,47 +30,30 @@ public class DgsGraphStreamAnimate extends SinkAdapter {
 
     private DefaultGraph g;
     private FileSinkImages fsi;
-    private Layout layout;
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        if (args.length < 2) {
-            System.out.println("Usage: DgsGraphStreamAnimate.jar input.dgs output/frame_");
-            System.exit(1);
-        }
-        try{
-            DgsGraphStreamAnimate a = new DgsGraphStreamAnimate();
-            a.AnimateDgs(args[0], args[1]);
-        } catch(IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    private void AnimateDgs(String inputDGS, String outputDirectory)
+    private ProxyPipe pipe;
+    private LinLog layout;
+        
+    private void AnimateDgs(String inputDGS, String outputDirectory, Boolean linlog, Boolean display)
             throws java.io.IOException {
 
-        //System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+        System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
         
         FileSourceDGS dgs = new FileSourceDGS();
         
         this.g = new DefaultGraph("graph");
-        //this.g.addAttribute("ui.stylesheet", "url('style.css')");
+        this.g.addAttribute("ui.stylesheet", "url('style.css')");
         
-        /*
-        LinLog layout = new LinLog(false);
-        
-        double a = 0;
-        double r = -1.3;
-        double force = 3;
-        
-        layout.configure(a, r, true, force);
-        layout.setQuality(1);
-        layout.setBarnesHutTheta(0.5);
-        */
-        
-        //this.layout = Layouts.newLayoutAlgorithm();
+        if (linlog) {
+            layout = new LinLog(false);
+            double a = 0;
+            double r = -1.9;
+            double force = 3;
+
+            layout.configure(a, r, true, force);
+            layout.setQuality(1);
+            layout.setBarnesHutTheta(0.5);
+            //layout.setStabilizationLimit(0);
+        }
         
         fsi = new FileSinkImages(OutputType.PNG, Resolutions.HD720);
         fsi.setOutputPolicy(OutputPolicy.BY_STEP);
@@ -77,33 +62,43 @@ public class DgsGraphStreamAnimate extends SinkAdapter {
         fsi.setRenderer(RendererType.SCALA);
         fsi.setStyleSheet("url('style.css')");
 
-        //dgs.addSink(layout);
-        //layout.addSink(fsi);
+        if (linlog) {
+            // chain: dgs -> g -> layout -> fsi
+            dgs.addSink(this.g);
+            this.g.addSink(layout);
+            layout.addAttributeSink(this.g);
+            layout.addSink(fsi);
+            
+        }
+        else {
+            // chain: dgs -> g -> fsi
+            dgs.addSink(this.g);
+            this.g.addSink(fsi);
+        }
 
-        // chain: dgs -> fsi
-        //dgs.addSink(fsi);
-        
-        // chain: dgs -> g -> fsi
-        dgs.addSink(this.g);
-        this.g.addSink(fsi);
-        
-        // chain: dgs -> g -> layout -> fsi
-        //dgs.addSink(this.g);
-        //this.g.addSink(layout);
-        //this.layout.addSink(fsi);
-        
         dgs.addAttributeSink(this);
+
+        Viewer viewer = null;
         
-        //Viewer viewer = this.g.display();
-        //ProxyPipe pipe = viewer.newViewerPipe();
+        if (display) {
+            viewer = this.g.display();
+            viewer.enableAutoLayout(layout);
+            //pipe = viewer.newViewerPipe();
+            pipe = viewer.newThreadProxyOnGraphicGraph();
+        }
         
-        System.out.println(inputDGS);
         fsi.begin(outputDirectory);
         try {
             dgs.begin(inputDGS);
             while (dgs.nextEvents()) {
-                //pipe.pump();
-                //layout.compute();
+                
+                if (linlog) {
+                    layout.compute();
+                }
+
+                if (display) {
+                    pipe.pump();
+                }
             }
             dgs.end();
             fsi.end();
@@ -127,6 +122,67 @@ public class DgsGraphStreamAnimate extends SinkAdapter {
 
             n.setAttribute("ui.style", "shape: pie-chart; fill-color: " + newValue.toString() + ";");
             n.setAttribute("ui.pie-values", pie_values);
+        }
+    }
+    
+    public static void main(String[] args) {
+        
+        Map<String, List<String>> params = new HashMap<>();
+        List<String> options = null;
+
+        for (String a : args) {
+            if (a.charAt(0) == '-') {
+                if (a.length() < 2) {
+                    System.err.println("Error at argument " + a);
+                    return;
+                }
+
+                options = new ArrayList<>();
+                params.put(a.substring(1), options);
+            }
+            else if (options != null) {
+                options.add(a);
+            }
+            else {
+                System.err.println("Illegal parameter usage");
+                return;
+            }
+        }
+        
+        Boolean error = false;
+        if (!params.containsKey("dgs")) {
+            System.out.println("Missing required option: -dgs\n");
+            error = true;
+        }
+        if (!params.containsKey("out")) {
+            System.out.println("Missing required option: -out\n");
+            error = true;
+        }
+        if (error || params.containsKey("help") || params.containsKey("h")) {
+            System.out.println("usage: DgsGraphStreamAnimate.jar [OPTIONS]...");
+            System.out.println("-dgs <arg>      input GraphStream DGS file");
+            System.out.println("-out <arg>      frame filenames are prepended with this path");
+            System.out.println("-layout <arg>   layout option to use. options: [default|linlog]");
+            System.out.println("-display screen layout option to use. options: [screen]");
+            System.out.println("-h,-help        display this help and exit");
+            System.exit(1);
+        }
+        
+        Boolean linlog = false;
+        Boolean display = false;
+        if (params.containsKey("layout") && params.get("layout").get(0).equals("linlog")) {
+            linlog = true;
+        }
+        if (params.containsKey("display") && params.get("display").get(0).equals("screen")) {
+            display = true;
+        }
+        
+        try {
+            System.out.println(params.get("dgs").get(0));
+            DgsGraphStreamAnimate a = new DgsGraphStreamAnimate();
+            a.AnimateDgs(params.get("dgs").get(0), params.get("out").get(0), linlog, display);
+        } catch(IOException e) {
+            e.printStackTrace();
         }
     }
 }
