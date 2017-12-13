@@ -1,11 +1,10 @@
 package dgsgraphstreamanimate;
 
 import java.io.IOException;
+import java.util.Arrays;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.stream.ProxyPipe;
-import org.graphstream.ui.spriteManager.Sprite;
-import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.stream.file.FileSourceDGS;
 import org.graphstream.stream.file.FileSinkImages;
 import org.graphstream.stream.file.FileSinkImages.Quality;
@@ -13,13 +12,13 @@ import org.graphstream.stream.file.FileSinkImages.Resolutions;
 import org.graphstream.stream.file.FileSinkImages.OutputType;
 import org.graphstream.stream.file.FileSinkImages.OutputPolicy;
 import org.graphstream.stream.file.FileSinkImages.LayoutPolicy;
+import org.graphstream.stream.file.FileSinkImages.RendererType;
 import org.graphstream.stream.SinkAdapter;
 import org.graphstream.ui.graphicGraph.GraphicGraph;
 import org.graphstream.ui.layout.Layout;
 import org.graphstream.ui.layout.Layouts;
 import org.graphstream.ui.layout.springbox.implementations.LinLog;
 import org.graphstream.ui.view.Viewer;
-import static scala.xml.TopScope.prefix;
 
 /**
  *
@@ -28,7 +27,7 @@ import static scala.xml.TopScope.prefix;
 public class DgsGraphStreamAnimate extends SinkAdapter {
 
     private DefaultGraph g;
-    private FileSinkImagesPie fsi;
+    private FileSinkImages fsi;
     private Layout layout;
     
     /**
@@ -49,14 +48,13 @@ public class DgsGraphStreamAnimate extends SinkAdapter {
     
     private void AnimateDgs(String inputDGS, String outputDirectory)
             throws java.io.IOException {
-        
-        //System.setProperty("org.graphstream.ui", "org.graphstream.ui.swing.util.Display");
-        System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+
+        //System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
         
         FileSourceDGS dgs = new FileSourceDGS();
         
         this.g = new DefaultGraph("graph");
-        this.g.addAttribute("ui.stylesheet", "url('style.css')");
+        //this.g.addAttribute("ui.stylesheet", "url('style.css')");
         
         /*
         LinLog layout = new LinLog(false);
@@ -70,17 +68,21 @@ public class DgsGraphStreamAnimate extends SinkAdapter {
         layout.setBarnesHutTheta(0.5);
         */
         
-        this.layout = Layouts.newLayoutAlgorithm();
+        //this.layout = Layouts.newLayoutAlgorithm();
         
-        fsi = new FileSinkImagesPie(OutputType.PNG, Resolutions.HD720);
-        fsi.setStyleSheet("url('style.css')");
+        fsi = new FileSinkImages(OutputType.PNG, Resolutions.HD720);
         fsi.setOutputPolicy(OutputPolicy.BY_STEP);
         fsi.setLayoutPolicy(LayoutPolicy.COMPUTED_FULLY_AT_NEW_IMAGE);
         fsi.setQuality(Quality.HIGH);
+        fsi.setRenderer(RendererType.SCALA);
+        fsi.setStyleSheet("url('style.css')");
 
         //dgs.addSink(layout);
         //layout.addSink(fsi);
 
+        // chain: dgs -> fsi
+        //dgs.addSink(fsi);
+        
         // chain: dgs -> g -> fsi
         dgs.addSink(this.g);
         this.g.addSink(fsi);
@@ -90,12 +92,10 @@ public class DgsGraphStreamAnimate extends SinkAdapter {
         //this.g.addSink(layout);
         //this.layout.addSink(fsi);
         
-        //dgs.addAttributeSink(this);
-        dgs.addElementSink(this);
+        dgs.addAttributeSink(this);
         
-        Viewer viewer = this.g.display();
-        ProxyPipe pipe = viewer.newViewerPipe();
-        pipe.addAttributeSink(this.g);
+        //Viewer viewer = this.g.display();
+        //ProxyPipe pipe = viewer.newViewerPipe();
         
         System.out.println(inputDGS);
         fsi.begin(outputDirectory);
@@ -104,8 +104,6 @@ public class DgsGraphStreamAnimate extends SinkAdapter {
             while (dgs.nextEvents()) {
                 //pipe.pump();
                 //layout.compute();
-                //fsi.nodeAttributeAdded(inputDGS, 0, inputDGS, inputDGS, fsi);
-                
             }
             dgs.end();
             fsi.end();
@@ -116,50 +114,19 @@ public class DgsGraphStreamAnimate extends SinkAdapter {
     }
     
     @Override
-    public void nodeAdded(String sourceId, long timeId, String nodeId) {
-        Node n = this.g.getNode(nodeId);
-        Object[] data = new Object[]{"0.5","0.5"};
-        
-        n.addAttribute("ui.style", "shape: pie-chart; fill-color: red,blue;size: 60px;");
-        //n.setAttribute("ui.style", "shape:pie-chart; fill-color: blue, red;");
-        //n.setAttribute("ui.pie-values", new double[]{0.5,0.5});
-        //n.setAttribute("ui.pie-values", new Object[]{"0.5","0.5"});
-        n.setAttribute("ui.pie-values", "0.5,0.5");
-        
-        //this.fsi.setPieValues(nodeId, "0.5,0.5");
-        
-        System.out.println(nodeId);
-        //System.out.println(n.getAttribute("ui.pie-values").toString());
-    }
-    
-    @Override
     public void nodeAttributeChanged(String sourceId, long timeId,
                     String nodeId, String attribute, Object oldValue, Object newValue) {
 
         if (attribute.equals("c")) {
             Node n = this.g.getNode(nodeId);
-            //n.addAttribute("ui.color", newValue);
-            //n.addAttribute("ui.style", "fill-color: " + newValue + ";");
 
-            /*
-            SpriteManager sm = new SpriteManager(this.g);
-            Sprite pie = sm.addSprite("pie");
-            pie.addAttribute("ui.style", "shape: pie-chart; fill-color: #FF0000, #00FF00;size: 40px;");
-            pie.addAttribute("ui.pie-values", new double[]{0.5,0.5});
-            pie.attachToNode(nodeId);
-            */
-            
-            //Object[] data = new Object[]{"0.5","0.5"};
-            
-            //n.setAttribute("ui.style", "shape:pie-chart; fill-color: red, blue;");
-            //n.setAttribute("ui.pie-values", data); //new double[]{0.5,0.5});
-            
-            System.out.println(nodeId);
-            //System.out.println(n.getAttribute("ui.pie-values").toString());
-            
-            
+            int count = newValue.toString().length() - newValue.toString().replace(",", "").length() + 1;
+            float share = 1.0f / (float)count;
+            float[] pie_values = new float[count];
+            Arrays.fill(pie_values, share);
+
+            n.setAttribute("ui.style", "shape: pie-chart; fill-color: " + newValue.toString() + ";");
+            n.setAttribute("ui.pie-values", pie_values);
         }
     }
-    
-
 }
