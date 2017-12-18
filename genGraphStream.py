@@ -180,7 +180,7 @@ def gen_frames(output, partitions_num):
     for p in range(0, partitions_num):
         dgs = os.path.join(output, 'partition_{}.dgs'.format(p))
         out = os.path.join(output, 'frames_partition/p{}_'.format(p))
-        args = ['java', '-jar', DGSGS_JAR, dgs, out]
+        args = ['java', '-jar', DGSGS_JAR, '-dgs', dgs, '-out', out]
         retval = subprocess.call(
             args, cwd='.',
             stderr=subprocess.STDOUT)

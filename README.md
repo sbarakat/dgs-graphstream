@@ -31,6 +31,49 @@ ffmpeg -r 5 -i output/frames_joined/frame_%6d.png -pix_fmt yuv420p -r 10 output/
 # The second -r means the video will play at 10 frames per second.
 ```
 
+## DGS to frames internals
+
+The GraphStream renderer is already executed when generating the animation above. To generate the frames manually,
+for example to experiment with the LinLog layout, the jar program can be executed directly.
+
+```
+$ java -jar "dgs-graphstream/dist/dgs-graphstream.jar" -h
+Missing required option: -dgs
+
+Missing required option: -out
+
+usage: DgsGraphStreamAnimate.jar [OPTIONS]...
+-dgs <arg>      input GraphStream DGS file
+-out <arg>      frame filenames are prepended with this path
+-layout <arg>   layout option to use. options: [default|linlog]
+-display screen layout option to use. options: [screen]
+-h,-help        display this help and exit
+```
+
+When used in this way, the `./genGraphStream.py` script can be used to create the DGS file, which is then fed into
+the JAR to generate the frames and finally back into `./genGraphStream.py` to join them together. The commands
+below give a full example for generating an animation using the the LinLog layout:
+
+```
+# Load the Python virtual environment
+source env/bin/activate
+
+# Generate DGS file from network and assignments
+./genGraphStream.py inputs/network_1.txt inputs/assignments.txt output/ --dgs --num-partitions 4
+
+# Animate the DGS file into frames for each partition
+java -jar "dgs-graphstream/dist/dgs-graphstream.jar" -dgs output/partition_0.dgs -out output/frames_partition/p0_ -layout linlog
+java -jar "dgs-graphstream/dist/dgs-graphstream.jar" -dgs output/partition_1.dgs -out output/frames_partition/p1_ -layout linlog
+java -jar "dgs-graphstream/dist/dgs-graphstream.jar" -dgs output/partition_2.dgs -out output/frames_partition/p2_ -layout linlog
+java -jar "dgs-graphstream/dist/dgs-graphstream.jar" -dgs output/partition_3.dgs -out output/frames_partition/p3_ -layout linlog
+
+# Join each partition tile into a single frame
+./genGraphStream.py inputs/network_1.txt inputs/assignments.txt output/ --join --num-partitions 4
+
+# Convert the frames into a video
+ffmpeg -framerate 4 -i output/frames_joined/frame_%6d.png -pix_fmt yuv420p -r 10 output/animation.mp4
+```
+
 ## Author
 
 Sami Barakat (<sami@sbarakat.co.uk>)
