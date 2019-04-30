@@ -1,4 +1,17 @@
 
+## About
+
+Script to create video animation of network partition assignments using GraphStream renderer.
+
+Processes METIS network file and node assignments, converting into the DGS file format. Then uses
+GraphStream to animate each frame, finally frames are stitched together into a video animation using ffmpeg.
+
+This project was used to visualize the graph partitioning algorithm in [sbarakat/graph-partitioning](https://github.com/sbarakat/graph-partitioning).
+
+Example:
+
+![Animation](animation.gif?raw=true)
+
 ## Initial setup
 
 ```
